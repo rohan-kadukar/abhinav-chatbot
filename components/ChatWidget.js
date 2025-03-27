@@ -17,7 +17,7 @@ import {
   saveFeedback,
 } from "../lib/chatUtils";
 
-const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
+const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false }) => {
   const [isChatOpen, setIsChatOpen] = useState(initiallyOpen);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -27,6 +27,10 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
   const chatWindowRef = useRef(null);
   const [resetAnimation, setResetAnimation] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [typingText, setTypingText] = useState('');
+  const [welcomeAnimComplete, setWelcomeAnimComplete] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [pulseButton, setPulseButton] = useState(false);
 
   useEffect(() => {
     const savedHistory = getChatHistory();
@@ -118,6 +122,99 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
       setIsChatOpen(initiallyOpen);
     }
   }, [initiallyOpen, isWidget]);
+
+  // Add special typing effect for bot messages
+  useEffect(() => {
+    const lastBotMessage = history.messages.filter(msg => msg.sender === 'bot').pop();
+    
+    if (lastBotMessage && !isTyping) {
+      const text = lastBotMessage.text;
+      setTypingText('');
+      
+      let i = 0;
+      const typingSpeed = 30; // ms per character
+      
+      const typeWriter = () => {
+        if (i < text.length) {
+          setTypingText(text.substring(0, i + 1));
+          i++;
+          setTimeout(typeWriter, typingSpeed);
+        }
+      };
+      
+      // Start the typing effect after a small delay
+      setTimeout(typeWriter, 100);
+    }
+  }, [history.messages, isTyping]);
+
+  // Add confetti effect when user gets a successful response
+  useEffect(() => {
+    const lastFeedback = Object.values(history.feedback).pop();
+    if (lastFeedback === 'positive') {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  }, [history.feedback]);
+
+  // Add pulse effect to suggest user interaction
+  useEffect(() => {
+    if (!isTyping && history.messages.length > 1 && history.messages[history.messages.length - 1].sender === 'bot') {
+      // Pulse the input button to encourage user to respond
+      setTimeout(() => {
+        setPulseButton(true);
+        setTimeout(() => setPulseButton(false), 2000);
+      }, 2000);
+    }
+  }, [isTyping, history.messages]);
+
+  // Enhanced welcome message with typing effect
+  useEffect(() => {
+    if (isChatOpen && history.messages.length === 0) {
+      const welcomeMessage = {
+        id: generateId(),
+        text: "👋 Hey there! I'm your Abhinav Academy assistant. Ask me anything about our courses, exams, or any academic questions! 😊",
+        sender: "bot",
+        timestamp: Date.now(),
+      };
+      
+      setIsTyping(true);
+      
+      // Simulate typing effect for welcome message
+      setTimeout(() => {
+        setHistory((prev) => ({ ...prev, messages: [welcomeMessage] }));
+        setIsTyping(false);
+        setWelcomeAnimComplete(true);
+        
+        // After welcome message, show the pulsing effect on input
+        setTimeout(() => {
+          setPulseButton(true);
+          setTimeout(() => setPulseButton(false), 2000);
+        }, 1000);
+      }, 1000);
+    }
+  }, [isChatOpen, history.messages.length]);
+
+  // Get theme-based classes
+  const getBgClass = () =>
+    preferences.theme === "dark"
+      ? "bg-gray-800 text-white"
+      : "bg-white text-black";
+  const getHeaderClass = () =>
+    preferences.theme === "dark"
+      ? "bg-indigo-900 text-white"
+      : "shimmer text-white";
+  const getButtonClass = () =>
+    preferences.theme === "dark"
+      ? "bg-indigo-700 hover:bg-indigo-600"
+      : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600";
+  const getChatBgClass = () =>
+    preferences.theme === "dark" ? "bg-gray-700" : "bg-gray-50";
+
+  // Add additional theme-based styling
+  const getInputAccentClass = () =>
+    preferences.theme === "dark"
+      ? "from-indigo-600 to-purple-700"
+      : "from-indigo-400 to-purple-500";
 
   const handleSendMessage = async (text) => {
     const userMessage = {
@@ -259,34 +356,6 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
     }, 500);
   };
 
-  useEffect(() => {
-    if (isChatOpen && history.messages.length === 0) {
-      const welcomeMessage = {
-        id: generateId(),
-        text: "👋 Hey there! I'm your Abhinav Academy assistant. Ask me anything about our courses, exams, or any academic questions! 😊",
-        sender: "bot",
-        timestamp: Date.now(),
-      };
-      setHistory((prev) => ({ ...prev, messages: [welcomeMessage] }));
-    }
-  }, [isChatOpen, history.messages.length]);
-
-  // Get theme-based classes
-  const getBgClass = () =>
-    preferences.theme === "dark"
-      ? "bg-gray-800 text-white"
-      : "bg-white text-black";
-  const getHeaderClass = () =>
-    preferences.theme === "dark"
-      ? "bg-indigo-900 text-white"
-      : "shimmer text-white";
-  const getButtonClass = () =>
-    preferences.theme === "dark"
-      ? "bg-indigo-700 hover:bg-indigo-600"
-      : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600";
-  const getChatBgClass = () =>
-    preferences.theme === "dark" ? "bg-gray-700" : "bg-gray-50";
-
   return (
     <>
       {/* If not in widget mode, we show the toggle button */}
@@ -321,20 +390,78 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
             isWidget ? 'inset-0' : 'bottom-4 right-4'
           } shadow-xl rounded-lg overflow-hidden ${getBgClass()} z-20 flex flex-col`}
           style={{
-            width: isWidget ? '100%' : '350px',
-            height: isWidget ? '100%' : '500px',
+            width: isWidget ? '100%' : isMobile ? '90vw' : '380px',
+            height: isWidget ? '100%' : isMobile ? '70vh' : '550px',
             maxWidth: isWidget ? '100%' : '90vw',
             maxHeight: isWidget ? '100%' : '80vh',
           }}
           initial={isWidget ? { opacity: 1 } : { opacity: 0, y: 20 }}
           animate={isWidget ? { opacity: 1 } : { opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.2 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 300, 
+            damping: 25
+          }}
         >
+          {/* Confetti effect */}
+          {showConfetti && (
+            <div className="confetti-container" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 100,
+              overflow: 'hidden'
+            }}>
+              {Array.from({ length: 50 }).map((_, i) => (
+                <div 
+                  key={i}
+                  className="confetti-item"
+                  style={{
+                    position: 'absolute',
+                    width: `${Math.random() * 10 + 5}px`,
+                    height: `${Math.random() * 10 + 5}px`,
+                    background: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    borderRadius: '50%',
+                    top: `-10px`,
+                    left: `${Math.random() * 100}%`,
+                    transform: `rotate(${Math.random() * 360}deg)`,
+                    animation: `fall ${Math.random() * 3 + 2}s linear forwards`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          
           <div
             className={`p-4 ${getHeaderClass()} flex justify-between items-center`}
           >
-            <h2 className={`text-lg font-bold`}>Abhinav Academy</h2>
+            <div className="flex items-center">
+              <motion.div 
+                className="w-8 h-8 rounded-full bg-white p-1 mr-2 flex items-center justify-center"
+                animate={{ 
+                  scale: welcomeAnimComplete ? [1, 1.1, 1] : 1,
+                  rotate: welcomeAnimComplete ? [0, 10, -10, 0] : 0
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  repeatType: "reverse", 
+                  duration: 2,
+                  repeatDelay: 5
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#6366F1" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                </svg>
+              </motion.div>
+              <div>
+                <h2 className={`text-lg font-bold`}>Abhinav Academy</h2>
+                <div className="text-xs opacity-80">Your Academic Assistant</div>
+              </div>
+            </div>
             <div className="flex items-center">
               <button
                 onClick={() =>
@@ -343,13 +470,13 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
                     theme: prev.theme === "dark" ? "light" : "dark",
                   }))
                 }
-                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
+                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
               >
                 {preferences.theme === "dark" ? "☀️" : "🌙"}
               </button>
               <button
                 onClick={handleResetChat}
-                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
+                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
                 title="Reset chat"
               >
                 <svg
@@ -368,9 +495,11 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
                 </svg>
               </button>
               {!isWidget && (
-                <button
+                <motion.button
                   onClick={() => setIsChatOpen(false)}
-                  className="p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
+                  className="p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -386,7 +515,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                </button>
+                </motion.button>
               )}
             </div>
           </div>
@@ -394,8 +523,102 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
           <div
             ref={chatWindowRef}
             className={`flex-1 p-4 overflow-y-auto chat-window ${getChatBgClass()}`}
-            style={{ minHeight: "200px", position: "relative" }}
+            style={{ minHeight: "200px", position: "relative", scrollBehavior: "smooth" }}
           >
+            {/* Custom styles for the chat UI */}
+            <style jsx global>{`
+              .chat-bubble-bot {
+                position: relative;
+                border-radius: 18px;
+                border-bottom-left-radius: 4px;
+                padding: 12px 16px;
+                background: ${preferences.theme === "dark" ? "#4338ca" : "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)"};
+                color: white;
+                max-width: 80%;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                margin-bottom: 10px;
+                transform-origin: bottom left;
+                animation: scale-in 0.2s ease-out;
+              }
+              
+              .chat-bubble-user {
+                position: relative;
+                border-radius: 18px;
+                border-bottom-right-radius: 4px;
+                padding: 12px 16px;
+                background: ${preferences.theme === "dark" ? "#374151" : "#E5E7EB"};
+                color: ${preferences.theme === "dark" ? "white" : "#111827"};
+                max-width: 80%;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                margin-bottom: 10px;
+                margin-left: auto;
+                transform-origin: bottom right;
+                animation: scale-in 0.2s ease-out;
+              }
+              
+              @keyframes scale-in {
+                0% { transform: scale(0.8); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+              }
+              
+              .typing-indicator {
+                display: flex;
+                align-items: center;
+                padding: 8px 16px;
+                min-width: 60px;
+              }
+              
+              .typing-dot {
+                width: 8px;
+                height: 8px;
+                background-color: rgba(255, 255, 255, 0.7);
+                border-radius: 50%;
+                margin: 0 2px;
+                animation: typing-dot 1.4s infinite ease-in-out;
+              }
+              
+              .typing-dot:nth-child(1) { animation-delay: 0s; }
+              .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+              .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+              
+              @keyframes typing-dot {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+              }
+              
+              .pulse-button {
+                animation: pulse 2s infinite;
+              }
+              
+              @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+                70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+              }
+              
+              @keyframes fall {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                70% { opacity: 1; }
+                100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+              }
+              
+              .shimmer {
+                background: linear-gradient(
+                  to right,
+                  #4338ca 0%,
+                  #6366F1 25%,
+                  #818cf8 35%,
+                  #4338ca 65%
+                );
+                background-size: 200% auto;
+                animation: shimmer 3s linear infinite;
+              }
+              
+              @keyframes shimmer {
+                to { background-position: 200% center; }
+              }
+            `}</style>
+
             {history.messages.map((message, index) => (
               <ChatMessage
                 key={message.id}
@@ -514,6 +737,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
               onSendMessage={handleSendMessage}
               disabled={isTyping}
               theme={preferences.theme}
+              pulseEffect={pulseButton}
             />
           </div>
         </motion.div>

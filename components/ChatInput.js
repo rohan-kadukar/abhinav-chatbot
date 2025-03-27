@@ -1,66 +1,116 @@
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-const ChatInput = ({ onSendMessage, disabled, theme }) => {
+const ChatInput = ({ onSendMessage, disabled, theme, pulseEffect = false }) => {
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const inputRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Focus input on component mount
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
       onSendMessage(message.trim());
       setMessage('');
-      setIsTyping(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    setMessage(e.target.value);
-    setIsTyping(e.target.value.length > 0);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      handleSubmit(e);
+    }
   };
 
-  const getInputClass = () => theme === 'dark' 
-    ? 'bg-gray-800 text-white border-gray-700 focus:border-indigo-500' 
-    : 'bg-white text-gray-700 border-gray-200 focus:border-indigo-400';
+  const getBgColor = () => 
+    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
   
-  const getButtonClass = () => theme === 'dark' 
-    ? 'bg-indigo-700 hover:bg-indigo-600 disabled:bg-gray-700' 
-    : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 disabled:from-gray-400 disabled:to-gray-400';
+  const getHoverBgColor = () => 
+    theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200';
+  
+  const getPlaceholderColor = () =>
+    theme === 'dark' ? 'placeholder-gray-400' : 'placeholder-gray-500';
+  
+  const getButtonBgColor = () =>
+    theme === 'dark' 
+      ? 'bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800' 
+      : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700';
 
   return (
-    <div className={`px-4 py-3 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-      <form onSubmit={handleSubmit} className="relative flex items-center">
-        <input
+    <form onSubmit={handleSubmit} className="p-3">
+      <div className={`relative flex items-center ${isFocused ? 'ring-2 ring-indigo-500 ring-opacity-50' : ''} rounded-full transition-all duration-300`}>
+        <motion.input
+          ref={inputRef}
           type="text"
           value={message}
-          onChange={handleInputChange}
-          placeholder={disabled ? "AI is thinking..." : "Ask me anything..."}
-          className={`w-full ${getInputClass()} text-sm py-2.5 pr-10 pl-4 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400 border transition-all`}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
           disabled={disabled}
+          placeholder="Type your message..."
+          className={`w-full py-3 pl-4 pr-16 ${getBgColor()} ${getPlaceholderColor()} rounded-full border ${
+            theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
+          } focus:outline-none transition-all duration-300`}
+          style={{
+            boxShadow: pulseEffect ? '0 0 10px rgba(99, 102, 241, 0.5)' : 'none'
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          whileTap={{ scale: 0.98 }}
+          animate={
+            pulseEffect
+              ? {
+                  boxShadow: [
+                    '0 0 0 0 rgba(99, 102, 241, 0.7)',
+                    '0 0 0 10px rgba(99, 102, 241, 0)',
+                    '0 0 0 0 rgba(99, 102, 241, 0)',
+                  ],
+                }
+              : {}
+          }
+          transition={{
+            boxShadow: {
+              repeat: 5,
+              duration: 2,
+            },
+          }}
         />
-        
         <motion.button
           type="submit"
           disabled={!message.trim() || disabled}
-          className={`absolute right-2 ${getButtonClass()} text-white p-2 rounded-full transition-all ${!message.trim() || disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
-          whileHover={!disabled && message.trim() ? { scale: 1.1 } : {}}
-          whileTap={!disabled && message.trim() ? { scale: 0.9 } : {}}
-          animate={isTyping ? { rotate: [0, 15, 0, -15, 0] } : {}}
-          transition={isTyping ? { duration: 0.5, repeat: 0 } : {}}
+          className={`absolute right-1.5 w-10 h-10 flex items-center justify-center ${getButtonBgColor()} text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          animate={pulseEffect ? { scale: [1, 1.1, 1] } : {}}
+          transition={{ scale: { repeat: 5, duration: 1 } }}
         >
-          <motion.svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5" 
-            viewBox="0 0 20 20" 
-            fill="currentColor"
-            animate={isTyping && !disabled ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 1, repeat: Infinity }}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-          </motion.svg>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
+          </svg>
         </motion.button>
-      </form>
-    </div>
+      </div>
+      
+      {/* Subtle hint text */}
+      <div className="text-xs text-center mt-1 opacity-60">
+        {message.length > 0 ? 'Press Enter to send' : 'Ask any question about Abhinav Academy'}
+      </div>
+    </form>
   );
 };
 
