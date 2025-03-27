@@ -441,25 +441,88 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
           >
             <div className="flex items-center">
               <motion.div 
-                className="w-8 h-8 rounded-full bg-white p-1 mr-2 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-white p-1 mr-3 flex items-center justify-center shadow-lg"
                 animate={{ 
                   scale: welcomeAnimComplete ? [1, 1.1, 1] : 1,
-                  rotate: welcomeAnimComplete ? [0, 10, -10, 0] : 0
+                  rotate: welcomeAnimComplete ? [0, 10, -10, 0] : 0,
+                  boxShadow: [
+                    '0 4px 8px rgba(99, 102, 241, 0.4)',
+                    '0 6px 16px rgba(139, 92, 246, 0.6)',
+                    '0 4px 8px rgba(99, 102, 241, 0.4)'
+                  ]
                 }}
                 transition={{ 
                   repeat: Infinity, 
                   repeatType: "reverse", 
-                  duration: 2,
-                  repeatDelay: 5
+                  duration: 3,
+                  repeatDelay: 2
                 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#6366F1" className="w-6 h-6">
+                <motion.svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  strokeWidth={1.5} 
+                  stroke="#6366F1" 
+                  className="w-7 h-7"
+                  animate={{
+                    fill: ['rgba(99, 102, 241, 0)', 'rgba(99, 102, 241, 0.1)', 'rgba(99, 102, 241, 0)'],
+                    stroke: ['#6366F1', '#8B5CF6', '#6366F1']
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3,
+                    repeatDelay: 1
+                  }}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-                </svg>
+                </motion.svg>
               </motion.div>
               <div>
-                <h2 className={`text-lg font-bold`}>Abhinav Academy</h2>
-                <div className="text-xs opacity-80">Your Academic Assistant</div>
+                <motion.h2 
+                  className={`text-lg font-bold`}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    transition: {
+                      delay: 0.2,
+                      duration: 0.5
+                    }
+                  }}
+                >
+                  <span className="mr-1">Abhinav</span>
+                  <motion.span
+                    animate={{
+                      color: [
+                        'rgba(255,255,255,1)', 
+                        'rgba(255,255,255,0.8)', 
+                        'rgba(255,255,255,1)'
+                      ]
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 3
+                    }}
+                  >
+                    Academy
+                  </motion.span>
+                </motion.h2>
+                <motion.div 
+                  className="text-xs opacity-80"
+                  initial={{ opacity: 0 }}
+                  animate={{ 
+                    opacity: [0, 0.8, 0.7, 0.8],
+                    transition: {
+                      delay: 0.4,
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }
+                  }}
+                >
+                  Your Academic Assistant
+                </motion.div>
               </div>
             </div>
             <div className="flex items-center">
@@ -494,29 +557,90 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                   />
                 </svg>
               </button>
-              {!isWidget && (
-                <motion.button
-                  onClick={() => setIsChatOpen(false)}
-                  className="p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
-                  whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
-                  whileTap={{ scale: 0.9 }}
+              <motion.button
+                onClick={() => {
+                  setIsChatOpen(false);
+                  // If in widget mode, send message to parent window to close widget
+                  if (isWidget && window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                      type: 'close',
+                      isOpen: false
+                    }, '*');
+                  }
+                }}
+                className="p-2 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300 relative overflow-hidden"
+                whileHover={{ 
+                  scale: 1.15, 
+                  rotate: [0, -10, 10, -10, 0],
+                  boxShadow: '0 0 15px rgba(99, 102, 241, 0.6)'
+                }}
+                whileTap={{ 
+                  scale: 0.85,
+                  boxShadow: '0 0 5px rgba(99, 102, 241, 0.9)'
+                }}
+                style={{ 
+                  background: preferences.theme === "dark" 
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))' 
+                    : 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                  boxShadow: '0 0 10px rgba(99, 102, 241, 0.3)'
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: [0, 1.2, 1],
+                  transition: { 
+                    duration: 0.5,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 20
+                  }
+                }}
+              >
+                {/* Animated ripple effect */}
+                <motion.span 
+                  className="absolute inset-0 rounded-full"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ 
+                    opacity: [0, 0.2, 0], 
+                    scale: [1, 1.5, 1.8],
+                    transition: {
+                      repeat: Infinity,
+                      duration: 2,
+                      repeatDelay: 1
+                    }
+                  }}
+                  style={{ 
+                    background: preferences.theme === "dark" 
+                      ? 'radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, rgba(99, 102, 241, 0) 70%)' 
+                      : 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, rgba(99, 102, 241, 0) 70%)'
+                  }}
+                ></motion.span>
+                
+                <motion.svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 relative z-10"
+                  fill="none"
+                  initial={{ pathLength: 0 }}
+                  animate={{ 
+                    pathLength: 1,
+                    transition: { duration: 0.5, delay: 0.2 }
+                  }}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </motion.button>
-              )}
+                  <motion.path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                    initial={{ pathLength: 0 }}
+                    animate={{ 
+                      pathLength: 1,
+                      transition: { duration: 0.5, delay: 0.2 }
+                    }}
+                  />
+                </motion.svg>
+              </motion.button>
             </div>
           </div>
 
@@ -538,7 +662,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 margin-bottom: 10px;
                 transform-origin: bottom left;
-                animation: scale-in 0.2s ease-out;
+                animation: scale-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
               }
               
               .chat-bubble-user {
@@ -553,11 +677,12 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                 margin-bottom: 10px;
                 margin-left: auto;
                 transform-origin: bottom right;
-                animation: scale-in 0.2s ease-out;
+                animation: scale-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
               }
               
               @keyframes scale-in {
                 0% { transform: scale(0.8); opacity: 0; }
+                70% { transform: scale(1.05); opacity: 1; }
                 100% { transform: scale(1); opacity: 1; }
               }
               
@@ -616,6 +741,120 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
               
               @keyframes shimmer {
                 to { background-position: 200% center; }
+              }
+              
+              /* New enhanced animations */
+              .chat-message-user:hover, .chat-message-bot:hover {
+                transform: translateY(-2px) scale(1.01);
+                transition: all 0.3s ease;
+                z-index: 10;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+              }
+              
+              .chat-message-bot:not(:hover) {
+                transition: all 0.3s ease;
+              }
+              
+              .chat-bubble-bot:after {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+                background-size: 200% 200%;
+                animation: shine 3s infinite;
+                pointer-events: none;
+              }
+              
+              @keyframes shine {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+              
+              .rainbow-border {
+                position: relative;
+              }
+              
+              .rainbow-border:before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                z-index: -1;
+                border-radius: inherit;
+                background: linear-gradient(
+                  45deg, 
+                  #ff1493, #ff7f50, #ffd700, #adff2f, 
+                  #1e90ff, #8a2be2, #ff1493
+                );
+                background-size: 400% 400%;
+                animation: rainbow 8s linear infinite;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+              }
+              
+              .rainbow-border:hover:before {
+                opacity: 1;
+              }
+              
+              @keyframes rainbow {
+                0% { background-position: 0 0; }
+                100% { background-position: 400% 0; }
+              }
+              
+              .ripple {
+                position: relative;
+                overflow: hidden;
+              }
+              
+              .ripple:after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                opacity: 0;
+              }
+              
+              .ripple:active:after {
+                width: 300px;
+                height: 300px;
+                opacity: 1;
+                transition: width 0.6s ease-out, height 0.6s ease-out, opacity 0.6s ease-out;
+              }
+              
+              .satisfying-pop {
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+              }
+              
+              .satisfying-pop:active {
+                transform: scale(0.85);
+              }
+              
+              /* Make scrollbar attractive */
+              .chat-window::-webkit-scrollbar {
+                width: 6px;
+              }
+              
+              .chat-window::-webkit-scrollbar-track {
+                background: ${preferences.theme === "dark" ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
+                border-radius: 10px;
+              }
+              
+              .chat-window::-webkit-scrollbar-thumb {
+                background: ${preferences.theme === "dark" ? 'rgba(139, 92, 246, 0.5)' : 'rgba(99, 102, 241, 0.5)'};
+                border-radius: 10px;
+                transition: all 0.3s ease;
+              }
+              
+              .chat-window::-webkit-scrollbar-thumb:hover {
+                background: ${preferences.theme === "dark" ? 'rgba(139, 92, 246, 0.8)' : 'rgba(99, 102, 241, 0.8)'};
               }
             `}</style>
 
