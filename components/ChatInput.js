@@ -52,7 +52,7 @@ const ChatInput = ({ onSendMessage, disabled, theme, pulseEffect = false }) => {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder="Type your message..."
+          placeholder={disabled ? "AI is thinking..." : "Ask me anything..."}
           className={`w-full py-3 pl-4 pr-16 ${getBgColor()} ${getPlaceholderColor()} rounded-full border ${
             theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
           } focus:outline-none transition-all duration-300`}

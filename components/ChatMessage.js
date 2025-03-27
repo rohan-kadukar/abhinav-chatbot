@@ -75,7 +75,7 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
           
           {/* Feedback options - always reserve the space */}
           <AnimatePresence mode="wait">
-            {!isUser && onFeedback && !feedbackGiven && !isConfirmationMessage && (isHovered || showFeedbackForm) ? (
+            {!isUser && onFeedback && !feedbackGiven && !isConfirmationMessage && (isHovered || !isHovered || showFeedbackForm) ? (
               <motion.div 
                 key="feedback-options"
                 className="flex items-center gap-1"
@@ -119,7 +119,7 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Thanks
+                    Thanks 😊
                   </span>
                 ) : (
                   <span className="text-indigo-500 text-xs font-medium flex items-center">

@@ -441,7 +441,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
           >
             <div className="flex items-center flex-shrink-0">
               <motion.div 
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white p-1 mr-2 sm:mr-3 flex items-center justify-center shadow-lg"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white p-1 mr-2 sm:mr-3 flex items-center justify-center shadow-lg  animate-pulse"
                 animate={{ 
                   scale: welcomeAnimComplete ? [1, 1.1, 1] : 1,
                   rotate: welcomeAnimComplete ? [0, 10, -10, 0] : 0,
@@ -539,7 +539,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
               </button>
               <button
                 onClick={handleResetChat}
-                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
+                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300 animate-[spin_4s_linear_infinite]"
                 title="Reset chat"
               >
                 <svg
