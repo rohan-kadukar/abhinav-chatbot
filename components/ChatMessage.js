@@ -57,30 +57,6 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
     }
   };
 
-  const getBubbleStyle = () => {
-    if (isUser) {
-      return theme === 'dark' 
-        ? { 
-            background: 'linear-gradient(135deg, #4338CA, #6D28D9)',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)'
-          } 
-        : { 
-            background: 'linear-gradient(135deg, #6D28D9, #DB2777)',
-            boxShadow: '0 4px 6px -1px rgba(124, 58, 237, 0.2), 0 2px 4px -1px rgba(219, 39, 119, 0.1)'
-          };
-    } else {
-      return theme === 'dark' 
-        ? { 
-            backgroundColor: '#374151',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)' 
-          } 
-        : { 
-            backgroundColor: '#FFFFFF',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' 
-          };
-    }
-  };
-
   return (
     <motion.div 
       className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'} ${className || ''}`}
@@ -90,10 +66,7 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
       onMouseEnter={() => !isUser && setIsHovered(true)}
       onMouseLeave={() => !isUser && setIsHovered(false)}
     >
-      <div 
-        className={`rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} px-3 py-2.5 max-w-xs md:max-w-sm ${getBubbleClass()} text-sm`}
-        style={getBubbleStyle()}
-      >
+      <div className={`rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} px-3 py-2.5 max-w-xs md:max-w-sm ${getBubbleClass()} text-sm`}>
         <div className="message-text">{text}</div>
         
         {/* Footer with timestamp and feedback */}
@@ -112,7 +85,7 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
               >
                 <motion.button 
                   onClick={() => handleFeedback('positive')} 
-                  className={`flex items-center justify-center text-xs p-1 rounded-full ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  className={`attention-glow flex items-center justify-center text-xs p-1 rounded-full ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'}`}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label="Helpful"
@@ -123,7 +96,7 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
                 </motion.button>
                 <motion.button 
                   onClick={() => handleFeedback('negative')}
-                  className={`flex items-center justify-center text-xs p-1 rounded-full ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  className={`attention-glow flex items-center justify-center text-xs p-1 rounded-full ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'}`}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label="Not helpful"

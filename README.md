@@ -1,141 +1,77 @@
-# Abhinav Academy Chatbot Widget
+# Abhinav Academy Chatbot
 
-A versatile chatbot interface for Abhinav Academy that can be embedded on any website as a floating widget.
+A conversational AI interface for Abhinav Academy that can be embedded on any website.
 
 ## Features
 
-- Floating chat widget with a clean, modern design
-- Dark/light mode support
+- Interactive chatbot with conversational UI
+- Light/Dark mode toggle
+- Feedback system for responses
+- Relevant question suggestions
 - Responsive design for all devices
-- Customizable appearance and behavior
-- Easy integration into any website via a simple script
+- Embeddable as a widget on other websites
 
-## Demo
+## Local Development
 
-Visit [https://your-deployment-url.com](https://your-deployment-url.com) to see the chatbot in action.
+```bash
+# Install dependencies
+npm install
 
-## Deployment
+# Run development server
+npm run dev
 
-### Prerequisites
+# Build for production
+npm run build
 
-- Node.js 16.x or higher
-- npm or yarn
+# Start production server
+npm start
+```
 
-### Installation
+## Deploying on Vercel/Netlify
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/abhinav-academy-chatbot.git
-   cd abhinav-academy-chatbot
-   ```
+1. Push your code to a Git repository (GitHub, GitLab, Bitbucket)
+2. Connect your repository to Vercel or Netlify
+3. Deploy using their automated pipeline
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn
-   ```
+## Embedding the Chatbot
 
-3. Run the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+To embed the chatbot on another website (like student-abhinav.vercel.app), add the following script tag to your HTML:
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+```html
+<!-- Add this script at the end of your body tag -->
+<script src="https://your-deployment-url.vercel.app/api/widget"></script>
+```
 
-### Building for Production
+Replace `your-deployment-url.vercel.app` with your actual deployed URL.
 
-1. Build the project:
-   ```bash
-   npm run build
-   # or
-   yarn build
-   ```
+### Customization
 
-2. Start the production server:
-   ```bash
-   npm run start
-   # or
-   yarn start
-   ```
-
-### Deployment Options
-
-#### Vercel (Recommended)
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js).
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/yourusername/abhinav-academy-chatbot)
-
-#### Other Hosting Providers
-
-You can also deploy to Netlify, AWS, DigitalOcean, or any other service that supports Next.js applications.
-
-## Integration Guide
-
-### Basic Integration
-
-To add the chatbot to your website, add the following code to your HTML:
+To customize the appearance of the widget, you can add a configuration before loading the script:
 
 ```html
 <script>
-  window.abhinavAcademyChatbotSettings = {
-    // Optional custom settings
-    // title: 'Custom Title',
-    // position: 'left', // 'right' or 'left'
-    // theme: 'dark', // 'light' or 'dark'
+  window.ABHINAV_CHATBOT_CONFIG = {
+    position: 'right', // 'right' or 'left'
+    initialOpen: false, // Whether the chat should be open by default
+    // Add more configuration options as needed
   };
 </script>
-<script src="https://your-deployment-url.com/chatbot-widget.js" async></script>
+<script src="https://your-deployment-url.vercel.app/api/widget"></script>
 ```
 
-### Customization Options
+## Data Management
 
-You can customize the chatbot by adding options to `window.abhinavAcademyChatbotSettings`:
+The chatbot uses various data sources:
 
-```js
-window.abhinavAcademyChatbotSettings = {
-  title: 'Abhinav Academy Support',
-  position: 'left', // 'right' or 'left'
-  primaryColor: '#4f46e5', // Indigo
-  secondaryColor: '#7e22ce', // Purple
-  theme: 'dark', // 'light' or 'dark'
-  allowDarkMode: true, // Whether to show the dark mode toggle
-  welcomeMessage: 'Hello! How can I help you today?'
-};
-```
+- `lib/data.json` - Main knowledge base
+- `lib/feedback.json` - User feedback on responses
+- `lib/questions.json` - Unanswered user questions
 
-## Project Structure
+## Tech Stack
 
-- `/app` - Next.js app and API routes
-- `/components` - React components for the chatbot
-- `/lib` - Utility functions and data storage
-- `/public` - Static files including the embedding script
-
-## Customizing the Chatbot
-
-### Modifying the Chat Responses
-
-To modify the predefined responses and knowledge base, edit the files in the `lib` folder:
-
-- `data.json` - Contains the main knowledge base
-- `questions.json` - Contains suggested questions
-- `chatUtils.js` - Contains the response logic
-
-### Customizing the Design
-
-The design uses Tailwind CSS and can be customized by:
-
-1. Editing the component files in the `components` folder
-2. Modifying the Tailwind config in `tailwind.config.js`
-3. Adding custom CSS in `app/globals.css`
-
-## License
-
-MIT
-
-## Contact
-
-For any questions or issues, please open an issue on GitHub or contact us at your-email@example.com. 
+- Next.js
+- React
+- Framer Motion
+- TailwindCSS
+- Fuse.js for search
+- Compromise.js for NLP 

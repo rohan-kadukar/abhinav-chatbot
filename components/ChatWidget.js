@@ -17,8 +17,8 @@ import {
   saveFeedback,
 } from "../lib/chatUtils";
 
-const ChatWidget = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+const ChatWidget = ({ isWidget = false, initiallyOpen = false }) => {
+  const [isChatOpen, setIsChatOpen] = useState(initiallyOpen);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [history, setHistory] = useState({ messages: [], feedback: {} });
@@ -27,17 +27,6 @@ const ChatWidget = () => {
   const chatWindowRef = useRef(null);
   const [resetAnimation, setResetAnimation] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  // Enhanced button gradient and shadows
-  const buttonGradient = {
-    light: `background-image: linear-gradient(135deg, #7C3AED, #DB2777)`,
-    dark: `background-image: linear-gradient(135deg, #7C3AED, #DB2777)`,
-  };
-
-  const enhancedShadow = {
-    light: "0 10px 25px -5px rgba(124, 58, 237, 0.5), 0 8px 10px -6px rgba(219, 39, 119, 0.4)",
-    dark: "0 10px 25px -5px rgba(124, 58, 237, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.5)"
-  };
 
   useEffect(() => {
     const savedHistory = getChatHistory();
@@ -111,6 +100,24 @@ const ChatWidget = () => {
       }
     };
   }, [history.messages]);
+
+  // Add this effect for widget mode
+  useEffect(() => {
+    if (isWidget) {
+      // Dispatch custom event when chat is toggled in widget mode
+      const event = new CustomEvent('chatToggle', { 
+        detail: { isOpen: isChatOpen }
+      });
+      window.dispatchEvent(event);
+    }
+  }, [isChatOpen, isWidget]);
+
+  // Update isChatOpen if initiallyOpen changes
+  useEffect(() => {
+    if (isWidget) {
+      setIsChatOpen(initiallyOpen);
+    }
+  }, [initiallyOpen, isWidget]);
 
   const handleSendMessage = async (text) => {
     const userMessage = {
@@ -252,16 +259,6 @@ const ChatWidget = () => {
     }, 500);
   };
 
-  const scrollToBottom = () => {
-    if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTo({
-        top: chatWindowRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-      setShowScrollButton(false);
-    }
-  };
-
   useEffect(() => {
     if (isChatOpen && history.messages.length === 0) {
       const welcomeMessage = {
@@ -274,338 +271,253 @@ const ChatWidget = () => {
     }
   }, [isChatOpen, history.messages.length]);
 
-  const theme = preferences.theme;
+  // Get theme-based classes
+  const getBgClass = () =>
+    preferences.theme === "dark"
+      ? "bg-gray-800 text-white"
+      : "bg-white text-black";
+  const getHeaderClass = () =>
+    preferences.theme === "dark"
+      ? "bg-indigo-900 text-white"
+      : "shimmer text-white";
+  const getButtonClass = () =>
+    preferences.theme === "dark"
+      ? "bg-indigo-700 hover:bg-indigo-600"
+      : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600";
+  const getChatBgClass = () =>
+    preferences.theme === "dark" ? "bg-gray-700" : "bg-gray-50";
 
   return (
     <>
-      {/* Chat toggle button with a completely different design */}
-      <motion.div
-        className="fixed bottom-6 right-6 z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        {/* Attention-grabbing pulsating ring effect */}
-        {!isChatOpen && (
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{
-              boxShadow: [
-                "0 0 0 0px rgba(124, 58, 237, 0.7)",
-                "0 0 0 8px rgba(124, 58, 237, 0)",
-              ],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 1.5,
-              ease: "easeInOut",
-            }}
-          />
-        )}
+      {/* If not in widget mode, we show the toggle button */}
+      {!isWidget && !isChatOpen && (
         <motion.button
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ 
-            [buttonGradient[theme]]: true,
-            boxShadow: theme === "dark" 
-              ? '0 10px 25px -5px rgba(124, 58, 237, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)' 
-              : '0 10px 25px -5px rgba(124, 58, 237, 0.5), 0 8px 10px -6px rgba(219, 39, 119, 0.4)'
-          }}
-          whileHover={{ 
-            scale: 1.1,
-            boxShadow: theme === "dark" 
-              ? '0 20px 25px -5px rgba(124, 58, 237, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5)' 
-              : '0 20px 25px -5px rgba(124, 58, 237, 0.6), 0 10px 10px -5px rgba(219, 39, 119, 0.5)' 
-          }}
+          onClick={() => setIsChatOpen(true)}
+          className={`fixed bottom-4 right-4 h-14 w-14 rounded-full ${getButtonClass()} shadow-lg flex items-center justify-center z-10`}
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          animate={!isChatOpen ? { 
-            scale: [1, 1.05, 1],
-            transition: { 
-              duration: 2, 
-              repeat: Infinity,
-              repeatType: "reverse"
-            }
-          } : {}}
-          aria-label={isChatOpen ? "Close chat" : "Open chat"}
         >
-          <AnimatePresence mode="wait">
-            {isChatOpen ? (
-              <motion.svg
-                key="close"
-                initial={{ scale: 0, rotate: 90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 90 }}
-                className="w-7 h-7 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </motion.svg>
-            ) : (
-              <motion.svg
-                key="chat"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="w-7 h-7 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </motion.svg>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </motion.div>
-
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            className={`fixed z-50 flex flex-col 
-            ${theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white text-gray-800"}
-            rounded-2xl overflow-hidden border 
-            ${theme === "dark" ? "border-gray-800" : "border-gray-100"}`}
-            style={{ 
-              width: '340px', 
-              height: '500px', 
-              maxWidth: 'calc(100vw - 32px)', 
-              maxHeight: 'calc(100vh - 100px)',
-              boxShadow: theme === "dark" ? enhancedShadow.dark : enhancedShadow.light,
-              position: "fixed",
-              right: "24px",
-              bottom: "80px",
-            }}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
           >
-            {/* Chat Header with improved gradient */}
-            <div 
-              className={`p-3 flex justify-between items-center border-b ${
-                theme === "dark" ? "border-gray-800" : "border-gray-100"
-              }`}
-              style={theme === "dark" 
-                ? { backgroundImage: 'linear-gradient(to right, #1E40AF, #4C1D95)' } // Deeper blue to purple 
-                : { backgroundImage: 'linear-gradient(to right, #C7D2FE, #EDE9FE)' } // Light indigo to violet
-              }
-            >
-              <div className="flex items-center">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center mr-2"
-                  style={{ 
-                    [buttonGradient[theme]]: true, 
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)'
-                  }}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+            />
+          </svg>
+        </motion.button>
+      )}
+
+      {/* Widget is always visible in widget mode */}
+      {(isChatOpen || isWidget) && (
+        <motion.div
+          className={`fixed ${
+            isWidget ? 'inset-0' : 'bottom-4 right-4'
+          } shadow-xl rounded-lg overflow-hidden ${getBgClass()} z-20 flex flex-col`}
+          style={{
+            width: isWidget ? '100%' : '350px',
+            height: isWidget ? '100%' : '500px',
+            maxWidth: isWidget ? '100%' : '90vw',
+            maxHeight: isWidget ? '100%' : '80vh',
+          }}
+          initial={isWidget ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          animate={isWidget ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div
+            className={`p-4 ${getHeaderClass()} flex justify-between items-center`}
+          >
+            <h2 className={`text-lg font-bold`}>Abhinav Academy</h2>
+            <div className="flex items-center">
+              <button
+                onClick={() =>
+                  setPreferences((prev) => ({
+                    ...prev,
+                    theme: prev.theme === "dark" ? "light" : "dark",
+                  }))
+                }
+                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
+              >
+                {preferences.theme === "dark" ? "☀️" : "🌙"}
+              </button>
+              <button
+                onClick={handleResetChat}
+                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
+                title="Reset chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold bg-clip-text text-transparent" 
-                    style={{ 
-                      backgroundImage: `linear-gradient(135deg, #7C3AED, #EC4899)` 
-                    }}
-                >
-                  Abhinav Academy
-                </h3>
-              </div>
-              <div className="flex items-center">
-                <button
-                  onClick={handleThemeToggle}
-                  className={`p-1.5 rounded-full mr-1 transition-all duration-300 ${
-                    theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-100"
-                  }`}
-                  aria-label="Toggle theme"
-                >
-                  {theme === "dark" ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                  )}
-                </button>
-                <button
-                  onClick={handleResetChat}
-                  className={`p-1.5 rounded-full mr-1 transition-all duration-300 ${
-                    theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-100"
-                  }`}
-                  aria-label="Reset chat"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                  />
+                </svg>
+              </button>
+              {!isWidget && (
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className={`p-1.5 rounded-full transition-all duration-300 ${
-                    theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-100"
-                  }`}
-                  aria-label="Close chat"
+                  className="p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
-              </div>
-            </div>
-            
-            {/* Chat Window with improved background */}
-            <div
-              ref={chatWindowRef}
-              className={`flex-grow overflow-y-auto p-4 ${
-                theme === "dark" ? "bg-gray-900" : "bg-gray-50"
-              }`}
-              style={theme === "dark" 
-                ? { backgroundImage: 'radial-gradient(circle at 80% 20%, #374151, #111827)' } 
-                : { backgroundImage: 'radial-gradient(circle at 80% 20%, #FFFFFF, #F3F4F6)' }
-              }
-            >
-              <AnimatePresence>
-                {resetAnimation ? (
-                  <motion.div
-                    initial={{ opacity: 1, scale: 1 }}
-                    animate={{ opacity: 0, scale: 0.8, rotateZ: 5 }}
-                    exit={{ opacity: 0 }}
-                    className="flex flex-col space-y-4"
-                  >
-                    {history.messages.map((msg) => (
-                      <ChatMessage
-                        key={msg.id}
-                        message={msg}
-                        onFeedback={(type, reason) => {
-                          const questionMsg = history.messages.find(
-                            (m) => m.sender === "user" && m.id === msg.id - 1
-                          );
-                          const question = questionMsg ? questionMsg.text : null;
-                          handleFeedback(msg.id, type, reason, question, msg.text);
-                        }}
-                        theme={theme}
-                        className={`chat-message-${msg.sender}`}
-                      />
-                    ))}
-                  </motion.div>
-                ) : (
-                  <motion.div layout className="flex flex-col space-y-4">
-                    {history.messages.map((msg) => (
-                      <ChatMessage
-                        key={msg.id}
-                        message={msg}
-                        onFeedback={(type, reason) => {
-                          const questionMsg = history.messages.find(
-                            (m) => m.sender === "user" && m.id === msg.id - 1
-                          );
-                          const question = questionMsg ? questionMsg.text : null;
-                          handleFeedback(msg.id, type, reason, question, msg.text);
-                        }}
-                        theme={theme}
-                        className={`chat-message-${msg.sender}`}
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              
-              {/* Show suggestion chips only when suggestions are available and not typing */}
-              {!isTyping && suggestions && suggestions.length > 0 && (
-                <SuggestionChips
-                  suggestions={suggestions}
-                  onSuggestionClick={handleSuggestionClick}
-                  theme={theme}
-                />
               )}
-              
-              {/* Typing indicator with improved styling */}
-              <AnimatePresence>
-                {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className={`flex items-center px-4 py-3 rounded-2xl rounded-tl-none ${
-                      theme === "dark" ? "bg-gray-800" : "bg-white"
-                    } w-max max-w-[75%] text-sm ${
-                      theme === "dark" ? "text-gray-100" : "text-gray-800"
-                    } shadow-md border ${
-                      theme === "dark" ? "border-gray-700" : "border-gray-100"
-                    }`}
-                    style={{ 
-                      boxShadow: theme === "dark" 
-                        ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' 
-                        : '0 4px 6px -1px rgba(139, 92, 246, 0.1), 0 2px 4px -1px rgba(139, 92, 246, 0.06)' 
-                    }}
-                  >
-                    <div className="flex space-x-1">
-                      <div className="h-2 w-2 rounded-full animate-bounce" 
-                        style={{ 
-                          animationDelay: "0ms",
-                          background: `linear-gradient(135deg, #7C3AED, #EC4899)` 
-                        }}></div>
-                      <div className="h-2 w-2 rounded-full animate-bounce" 
-                        style={{ 
-                          animationDelay: "150ms",
-                          background: `linear-gradient(135deg, #7C3AED, #EC4899)` 
-                        }}></div>
-                      <div className="h-2 w-2 rounded-full animate-bounce" 
-                        style={{ 
-                          animationDelay: "300ms",
-                          background: `linear-gradient(135deg, #7C3AED, #EC4899)` 
-                        }}></div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
-            
-            {/* Scroll to bottom button with improved styling */}
+          </div>
+
+          <div
+            ref={chatWindowRef}
+            className={`flex-1 p-4 overflow-y-auto chat-window ${getChatBgClass()}`}
+            style={{ minHeight: "200px", position: "relative" }}
+          >
+            {history.messages.map((message, index) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                theme={preferences.theme}
+                className={`chat-message-${message.sender}`}
+                onFeedback={(feedback, reason) =>
+                  message.sender === "bot"
+                    ? handleFeedback(
+                        message.id,
+                        feedback,
+                        reason,
+                        history.messages[index - 1]?.text,
+                        message.text
+                      )
+                    : undefined
+                }
+              />
+            ))}
+            {isTyping && (
+              <div className="flex w-full mb-4 justify-start">
+                <div
+                  className={`chat-bubble-bot typing-indicator ${
+                    preferences.theme === "dark" ? "bg-gray-600" : ""
+                  }`}
+                >
+                  <div className="flex space-x-1">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Suggestion chips shown */}
+            {!isTyping && history.messages.length > 0 && (
+              <SuggestionChips
+                suggestions={suggestions}
+                onSuggestionClick={handleSuggestionClick}
+                theme={preferences.theme}
+              />
+            )}
+          </div>
+
+          {/* Scroll button positioned right above input */}
+          <div
+            className={`w-full ${
+              preferences.theme === "dark"
+                ? "bg-gray-800 border-t border-gray-700"
+                : "bg-white border-t border-gray-200"
+            } relative`}
+          >
             <AnimatePresence>
               {showScrollButton && (
                 <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={scrollToBottom}
-                  className={`absolute bottom-20 right-4 p-2 rounded-full shadow-lg ${
-                    theme === "dark" ? "bg-gray-800" : "bg-white"
-                  } border ${
-                    theme === "dark" ? "border-gray-700" : "border-gray-200"
-                  }`}
-                  style={{ 
-                    boxShadow: theme === "dark" 
-                      ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' 
-                      : '0 4px 6px -1px rgba(124, 58, 237, 0.3), 0 2px 4px -1px rgba(124, 58, 237, 0.2)' 
+                  className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full ${
+                    preferences.theme === "dark"
+                      ? "bg-gradient-to-br from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600"
+                      : "bg-gradient-to-br from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600"
+                  } text-white rounded-full p-2 shadow-lg z-40 border-2 border-white/30 ripple satisfying-pop rainbow-border w-8 h-8 flex items-center justify-center opacity-80 hover:opacity-100`}
+                  whileHover={{
+                    scale: 1.15,
+                    y: -2,
+                    boxShadow: "0 0 15px rgba(99, 102, 241, 0.6)",
                   }}
-                  aria-label="Scroll to bottom"
+                  whileTap={{ scale: 0.85 }}
+                  initial={{ opacity: 0, scale: 0, y: 0 }}
+                  animate={{
+                    opacity: 0.8,
+                    scale: [0, 1.2, 1],
+                    y: 0,
+                    boxShadow: [
+                      "0 0 0 0 rgba(99, 102, 241, 0)",
+                      "0 0 0 5px rgba(99, 102, 241, 0.3)",
+                      "0 0 0 0 rgba(99, 102, 241, 0)",
+                    ],
+                  }}
+                  exit={{ opacity: 0, scale: 0, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    scale: { duration: 0.4 },
+                    boxShadow: {
+                      repeat: Infinity,
+                      duration: 1.5,
+                      repeatDelay: 0.5,
+                    },
+                  }}
+                  onClick={() => {
+                    if (chatWindowRef.current) {
+                      chatWindowRef.current.scrollTop =
+                        chatWindowRef.current.scrollHeight;
+                      setShowScrollButton(false);
+                    }
+                  }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5`} fill="none" viewBox="0 0 24 24" stroke="currentColor" 
-                       style={{ 
-                         color: theme === "dark" ? "#C4B5FD" : "#7C3AED"
-                       }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
+                  <motion.svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    animate={{ y: [0, 2, 0] }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                  >
+                    <polyline points="7 13 12 18 17 13"></polyline>
+                    <polyline points="7 6 12 11 17 6"></polyline>
+                  </motion.svg>
                 </motion.button>
               )}
             </AnimatePresence>
-            
-            {/* Chat Input */}
             <ChatInput
               onSendMessage={handleSendMessage}
               disabled={isTyping}
-              theme={theme}
-              primaryColor="#7C3AED"
-              secondaryColor="#EC4899"
+              theme={preferences.theme}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
     </>
   );
 };
