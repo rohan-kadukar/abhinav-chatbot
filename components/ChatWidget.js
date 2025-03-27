@@ -437,11 +437,11 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
           )}
           
           <div
-            className={`p-4 ${getHeaderClass()} flex justify-between items-center`}
+            className={`p-3 sm:p-4 ${getHeaderClass()} flex justify-between items-center`}
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               <motion.div 
-                className="w-10 h-10 rounded-full bg-white p-1 mr-3 flex items-center justify-center shadow-lg"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white p-1 mr-2 sm:mr-3 flex items-center justify-center shadow-lg"
                 animate={{ 
                   scale: welcomeAnimComplete ? [1, 1.1, 1] : 1,
                   rotate: welcomeAnimComplete ? [0, 10, -10, 0] : 0,
@@ -478,9 +478,9 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
                 </motion.svg>
               </motion.div>
-              <div>
+              <div className="min-w-0">
                 <motion.h2 
-                  className={`text-lg font-bold`}
+                  className={`text-base sm:text-lg font-bold truncate`}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ 
                     opacity: 1, 
@@ -525,7 +525,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                 </motion.div>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center ml-2 flex-shrink-0">
               <button
                 onClick={() =>
                   setPreferences((prev) => ({
@@ -566,6 +566,13 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                       type: 'close',
                       isOpen: false
                     }, '*');
+                    
+                    // For widget mode, also try to close using window.close()
+                    try {
+                      window.close();
+                    } catch (e) {
+                      console.log("Could not close window directly:", e);
+                    }
                   }
                 }}
                 className="p-2 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300 relative overflow-hidden"
@@ -855,6 +862,36 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
               
               .chat-window::-webkit-scrollbar-thumb:hover {
                 background: ${preferences.theme === "dark" ? 'rgba(139, 92, 246, 0.8)' : 'rgba(99, 102, 241, 0.8)'};
+              }
+
+              .feedback-buttons {
+                opacity: 1 !important; /* Always visible */
+                transform: scale(1) !important;
+                background: ${preferences.theme === "dark" ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)'};
+                border-radius: 16px;
+                padding: 4px 8px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                z-index: 10;
+              }
+
+              .feedback-button {
+                background: transparent;
+                border: none;
+                color: ${preferences.theme === "dark" ? 'rgba(255, 255, 255, 0.7)' : 'rgba(75, 85, 99, 0.7)'};
+                padding: 4px;
+                margin: 0 2px;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.2s ease;
+              }
+
+              .feedback-button:hover {
+                color: ${preferences.theme === "dark" ? 'rgba(255, 255, 255, 1)' : 'rgba(75, 85, 99, 1)'};
+                background: ${preferences.theme === "dark" ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
+              }
+
+              .feedback-button.active {
+                color: ${preferences.theme === "dark" ? '#818cf8' : '#6366F1'};
               }
             `}</style>
 
