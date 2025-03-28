@@ -175,6 +175,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
         text: "👋 Hey there! I'm your Abhinav Academy assistant. Ask me anything about our courses, exams, or any academic questions! 😊",
         sender: "bot",
         timestamp: Date.now(),
+        noFeedback: true
       };
       
       setIsTyping(true);
@@ -349,6 +350,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
         text: "✨ Chat reset! Let's start fresh! How can I help you today? 😊",
         sender: "bot",
         timestamp: Date.now(),
+        noFeedback: true
       };
       setHistory({ messages: [welcomeMessage], feedback: {} });
       setSuggestions(getSuggestedQuestions(""));
@@ -533,13 +535,13 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                     theme: prev.theme === "dark" ? "light" : "dark",
                   }))
                 }
-                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300"
+                className="mr-2 p-1 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300"
               >
                 {preferences.theme === "dark" ? "☀️" : "🌙"}
               </button>
               <button
                 onClick={handleResetChat}
-                className="mr-2 p-1 rounded-full hover:bg-opacity-10 hover:bg-gray-200 transition-all duration-300 animate-[spin_4s_linear_infinite]"
+                className="mr-2 p-1 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300 animate-[spin_4s_linear_infinite]"
                 title="Reset chat"
               >
                 <svg
@@ -575,7 +577,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                     }
                   }
                 }}
-                className="p-2 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300 relative overflow-hidden"
+                className="p-1 rounded-full hover:bg-opacity-20 hover:bg-gray-200 transition-all duration-300 relative overflow-hidden"
                 whileHover={{ 
                   scale: 1.15, 
                   rotate: [0, -10, 10, -10, 0],
@@ -901,9 +903,12 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
                 message={message}
                 theme={preferences.theme}
                 className={`chat-message-${message.sender}`}
-                onFeedback={(feedback, reason) =>
-                  message.sender === "bot"
-                    ? handleFeedback(
+                onFeedback={
+                  message.sender === "bot" && 
+                  !message.text.includes("👋 Hey there! I'm your Abhinav Academy assistant") && 
+                  !message.text.includes("✨ Chat reset! Let's start fresh!") && 
+                  !message.isFeedbackConfirmation
+                    ? (feedback, reason) => handleFeedback(
                         message.id,
                         feedback,
                         reason,
