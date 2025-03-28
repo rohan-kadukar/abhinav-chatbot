@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://abhinav-chatbot-api.onrender.com/data');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/data`);
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }

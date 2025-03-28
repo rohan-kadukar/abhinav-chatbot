@@ -75,7 +75,7 @@ export async function POST(request) {
     };
 
     // Post the feedback to the external API
-    const apiResponse = await fetch('https://abhinav-chatbot-api.onrender.com/feedback', {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(feedbackEntry)

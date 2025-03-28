@@ -66,7 +66,7 @@ export async function POST(request) {
     };
 
     // Send the question data to the external API
-    const apiResponse = await fetch('https://abhinav-chatbot-api.onrender.com/questions', {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(questionEntry)
