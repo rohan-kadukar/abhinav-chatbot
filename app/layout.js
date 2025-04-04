@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/data`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/data1`);
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }

@@ -7,11 +7,18 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackReason, setFeedbackReason] = useState('');
+
+  // Early return if message is undefined
+  if (!message) {
+    return null;
+  }
+
   const { id, text, sender, timestamp, isFeedbackConfirmation } = message;
   const isUser = sender === 'user';
   
   // Skip feedback for confirmation messages - check flag or fallback to text check
-  const isConfirmationMessage = isFeedbackConfirmation || (!isUser && text.startsWith("Thanks for your feedback"));
+  const isConfirmationMessage = isFeedbackConfirmation || 
+    (!isUser && typeof text === 'string' && text.startsWith("Thanks for your feedback"));
   
   const handleFeedback = (type) => {
     if (!feedbackGiven && onFeedback && !isConfirmationMessage) {
@@ -187,4 +194,4 @@ const ChatMessage = ({ message, onFeedback, theme, className }) => {
   );
 };
 
-export default ChatMessage; 
+export default ChatMessage;

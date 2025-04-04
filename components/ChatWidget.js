@@ -233,12 +233,12 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
     // Add variable typing delay based on message length for more human-like interaction
     const typingDelay = Math.min(1000 + text.length * 20, 3000);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // Always use friendly enthusiastic tone
-      const responseText = getChatResponse(text, history, "enthusiastic");
+      const response = await getChatResponse(text, history, "enthusiastic");
       const botMessage = {
         id: generateId(),
-        text: responseText,
+        text: response.text, // Extract text from response object
         sender: "bot",
         timestamp: Date.now(),
       };
@@ -249,8 +249,8 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
 
       // If the response has "I'm sorry" or similar terms, it might be an unresolved question
       if (
-        responseText.includes("I'm sorry") ||
-        responseText.includes("I couldn't find")
+        response.text.includes("I'm sorry") ||
+        response.text.includes("I couldn't find")
       ) {
         saveUnresolvedQuestion(text);
       }
@@ -899,14 +899,12 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
 
             {history.messages.map((message, index) => (
               <ChatMessage
-                key={message.id}
+                key={index}
                 message={message}
                 theme={preferences.theme}
-                className={`chat-message-${message.sender}`}
                 onFeedback={
                   message.sender === "bot" && 
-                  !message.text.includes("👋 Hey there! I'm your Abhinav Academy assistant") && 
-                  !message.text.includes("✨ Chat reset! Let's start fresh!") && 
+                  !message.noFeedback && 
                   !message.isFeedbackConfirmation
                     ? (feedback, reason) => handleFeedback(
                         message.id,
