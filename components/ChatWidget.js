@@ -35,6 +35,16 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
   const [showConfetti, setShowConfetti] = useState(false);
   const [pulseButton, setPulseButton] = useState(false);
 
+  const scrollToBottom = (behavior = "smooth") => {
+    if (chatWindowRef.current) {
+      const scrollHeight = chatWindowRef.current.scrollHeight;
+      chatWindowRef.current.scrollTo({
+        top: scrollHeight,
+        behavior
+      });
+    }
+  };
+
   useEffect(() => {
     const savedHistory = getChatHistory();
     const savedPreferences = getChatPreferences();
@@ -62,21 +72,15 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
     );
   }, [preferences]);
 
-  // Modified to scroll only to the bot response message, not suggestions
   useEffect(() => {
     if (chatWindowRef.current && history.messages.length > 0) {
-      // Find all bot message elements
-      const botMessages =
-        chatWindowRef.current.querySelectorAll(".chat-message-bot");
-      if (botMessages.length > 0) {
-        // Get the last bot message and scroll to it
-        const lastBotMessage = botMessages[botMessages.length - 1];
-        if (lastBotMessage) {
-          lastBotMessage.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
-        }
+      const lastMessage = history.messages[history.messages.length - 1];
+      
+      // Immediate scroll for user messages, delayed for bot to account for animations
+      if (lastMessage.sender === 'user') {
+        scrollToBottom();
+      } else {
+        setTimeout(() => scrollToBottom(), 100);
       }
     }
   }, [history.messages]);
@@ -233,6 +237,9 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
     }));
     setIsTyping(true);
 
+    // Scroll to the user's message first
+    setTimeout(() => scrollToBottom(), 100);
+
     // Add variable typing delay based on message length for more human-like interaction
     const typingDelay = Math.min(1000 + text.length * 20, 3000);
 
@@ -241,7 +248,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
       const response = await getChatResponse(text, history, "enthusiastic");
       const botMessage = {
         id: generateId(),
-        text: response.text, // Extract text from response object
+        text: response.text,
         sender: "bot",
         timestamp: Date.now(),
       };
@@ -260,6 +267,9 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
 
       setSuggestions(getSuggestedQuestions(text));
       setIsTyping(false);
+
+      // Scroll to bot response after it's added
+      setTimeout(() => scrollToBottom(), 100);
     }, typingDelay);
   };
 
@@ -318,22 +328,6 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
 
   const handleSuggestionClick = (suggestion) => {
     handleSendMessage(suggestion);
-    // We'll scroll to the newly added message in the next render cycle
-    setTimeout(() => {
-      if (chatWindowRef.current) {
-        const userMessages =
-          chatWindowRef.current.querySelectorAll(".chat-message-user");
-        if (userMessages.length > 0) {
-          const lastUserMessage = userMessages[userMessages.length - 1];
-          if (lastUserMessage) {
-            lastUserMessage.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-            });
-          }
-        }
-      }
-    }, 100);
   };
 
   const handleThemeToggle = () => {
