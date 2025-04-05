@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import SuggestionChips from "./SuggestionChips";
+import { DataContext } from "../app/layout";
 import {
   generateId,
   getChatHistory,
@@ -15,9 +16,11 @@ import {
   saveChatPreferences,
   saveUnresolvedQuestion,
   saveFeedback,
+  useExternalData,
 } from "../lib/chatUtils";
 
 const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false }) => {
+  const { data1, loading } = useExternalData();
   const [isChatOpen, setIsChatOpen] = useState(initiallyOpen);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -390,7 +393,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
         <motion.div
           className={`fixed ${
             isWidget ? 'inset-0' : 'bottom-4 right-4'
-          } shadow-xl rounded-lg overflow-hidden ${getBgClass()} z-20 flex flex-col`}
+          } shadow-xl rounded-xl overflow-hidden ${getBgClass()} z-20 flex flex-col`}
           style={{
             width: isWidget ? '100%' : isMobile ? '90vw' : '380px',
             height: isWidget ? '100%' : isMobile ? '70vh' : '550px',
@@ -1017,6 +1020,7 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
               disabled={isTyping}
               theme={preferences.theme}
               pulseEffect={pulseButton}
+              loading={loading || !data1}
             />
           </div>
         </motion.div>
