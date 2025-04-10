@@ -14,14 +14,15 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/data1`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DATA_URL}/chatbot`);
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }
         const result = await response.json();
-        setData1(result);
+        console.log('Fetched data:', result.data);
+        setData1(result.data);
         // Also update the global data in chatUtils
-        updateGlobalData(result);
+        updateGlobalData(result.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
