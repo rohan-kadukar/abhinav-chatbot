@@ -89,7 +89,7 @@ export async function POST(request) {
       );
     }
 
-    console.log('Feedback sent to API:', feedbackEntry);
+    // console.log('Feedback sent to API:', feedbackEntry);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving feedback:', error);
