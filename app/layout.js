@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
           throw new Error('Failed to fetch data');
         }
         const result = await response.json();
-        console.log('Fetched data:', result.data);
+        // console.log('Fetched data:', result.data);
         setData1(result.data);
         // Also update the global data in chatUtils
         updateGlobalData(result.data);
