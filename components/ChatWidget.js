@@ -287,13 +287,13 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
     }));
 
     // Log the feedback data we're about to save
-    console.log("Feedback data being saved:", {
-      messageId,
-      feedback,
-      reason,
-      question,
-      answer,
-    });
+    // console.log("Feedback data being saved:", {
+    //   messageId,
+    //   feedback,
+    //   reason,
+    //   question,
+    //   answer,
+    // });
 
     // If we have both question and answer, save to feedback.json
     if (question && answer) {

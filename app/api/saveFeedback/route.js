@@ -69,13 +69,11 @@ export async function POST(request) {
       question,
       answer,
       feedback,
-      reason,
-      timestamp,
-      id: Date.now().toString(36) + Math.random().toString(36).substring(2)
+      reason
     };
 
     // Post the feedback to the external API
-    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_DATA_URL}/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(feedbackEntry)
