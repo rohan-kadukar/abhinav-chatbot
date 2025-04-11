@@ -258,12 +258,12 @@ const ChatWidget = ({ isWidget = false, initiallyOpen = false, isMobile = false 
       }));
 
       // If the response has "I'm sorry" or similar terms, it might be an unresolved question
-      if (
-        response.text.includes("I'm sorry") ||
-        response.text.includes("I couldn't find")
-      ) {
-        saveUnresolvedQuestion(text);
-      }
+      // if (
+      //   response.text.includes("I'm sorry") ||
+      //   response.text.includes("I couldn't find")
+      // ) {
+      //   saveUnresolvedQuestion(text);
+      // }
 
       setSuggestions(getSuggestedQuestions(text));
       setIsTyping(false);
